@@ -1,0 +1,1 @@
+[![Build Status](https://travis-ci.org/huyhoang17/CRNN_CTC_English_Handwriting_Recognition.svg?branch=master)](https://travis-ci.org/huyhoang17/CRNN_CTC_English_Handwriting_Recognition)

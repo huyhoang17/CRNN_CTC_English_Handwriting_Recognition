@@ -1,9 +1,11 @@
 # Custom
+src/config.py
 data
 notebooks
 models
 temp
 papers
+logs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

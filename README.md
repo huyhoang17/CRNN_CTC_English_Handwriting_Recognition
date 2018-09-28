@@ -20,7 +20,6 @@ Folder Structure
 ```
 ├── data_gen.py
 ├── LICENSE
-├── log.py
 ├── logs
 ├── models
 ├── notebooks
@@ -29,7 +28,6 @@ Folder Structure
 ├── src
 │   ├── config.py
 │   ├── data_generator.py
-│   ├── models.py
 │   ├── log.py
 │   ├── train.py
 │   └── utils.py

@@ -6,10 +6,13 @@ import numpy as np
 import keras
 from keras import backend as K
 
+import src.config as cf
 from src.utils import preprocess
 from src.log import get_logger
 
 logger = get_logger(__name__)
+
+chars = ' !"#&\'()*+,-./0123456789:;?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'  # noqa
 
 
 def labels_to_text(letters, labels):
@@ -82,7 +85,7 @@ class TextSequenceGenerator(keras.utils.Sequence):
         logger.info("Len chars: %d", len(self.chars))
 
         self.blank_label = len(self.chars)
-        self.list_IDs = range(len(self.samples))
+        self.ids = range(len(self.samples))
 
         self.img_size = img_size
         self.img_w, self.img_h = self.img_size
@@ -104,14 +107,15 @@ class TextSequenceGenerator(keras.utils.Sequence):
 
                 file_name_split = line_split[0].split('-')
 
-                base_dir = "words"
+                base_dir = os.path.split(self.fn_path)[0]
+                base_words = cf.WORDS_FOLDER
                 label_dir = file_name_split[0]
                 sub_label_dir = '{}-{}'.format(
                     file_name_split[0], file_name_split[1]
                 )
                 fn = '{}.png'.format(line_split[0])
-                file_path = os.path.join(
-                    self.fn_path, base_dir, label_dir,
+                img_path = os.path.join(
+                    base_dir, base_words, label_dir,
                     sub_label_dir, fn
                 )
 
@@ -119,14 +123,14 @@ class TextSequenceGenerator(keras.utils.Sequence):
                 gt_text = ' '.join(line_split[8:])[:self.max_text_len]
                 chars = chars.union(set(list(gt_text)))
 
-                samples.append([file_path, gt_text])
+                samples.append([img_path, gt_text])
 
         chars = sorted(list(chars))
         return samples, chars
 
     def __len__(self):
         """Denotes the number of batches per epoch"""
-        return int(np.floor(len(self.list_IDs) / self.batch_size))
+        return int(np.floor(len(self.ids) / self.batch_size))
 
     def __getitem__(self, index):
         """Generate one batch of data"""
@@ -135,22 +139,22 @@ class TextSequenceGenerator(keras.utils.Sequence):
                                self.batch_size:(index + 1) * self.batch_size]
 
         # Find list of IDs
-        list_IDs_temp = [self.list_IDs[k] for k in indexes]
+        ids = [self.ids[k] for k in indexes]
 
         # Generate data
-        X, y = self.__data_generation(list_IDs_temp)
+        X, y = self.__data_generation(ids)
 
         return X, y
 
     def on_epoch_end(self):
         """Updates indexes after each epoch"""
-        self.indexes = np.arange(len(self.list_IDs))
+        self.indexes = np.arange(len(self.ids))
         if self.shuffle:
             np.random.shuffle(self.indexes)
 
-    def __data_generation(self, list_IDs_temp):
+    def __data_generation(self, ids):
         """Generates data containing batch_size samples"""
-        size = len(list_IDs_temp)
+        size = len(ids)
 
         if K.image_data_format() == 'channels_first':
             X = np.ones([size, 1, self.img_w, self.img_h])
@@ -163,9 +167,9 @@ class TextSequenceGenerator(keras.utils.Sequence):
         label_length = np.zeros((size, 1), dtype=np.float32)
 
         # Generate data
-        for i, ID in enumerate(list_IDs_temp):
+        for i, id_ in enumerate(ids):
             img = preprocess(
-                cv2.imread(self.samples[ID][0], cv2.IMREAD_GRAYSCALE),
+                cv2.imread(self.samples[id_][0], cv2.IMREAD_GRAYSCALE),
                 self.img_size, self.data_aug
             )
             if K.image_data_format() == 'channels_first':
@@ -174,12 +178,12 @@ class TextSequenceGenerator(keras.utils.Sequence):
                 img = np.expand_dims(img, -1)
 
             X[i] = img
-            # text2label = text_to_labels(self.chars, self.samples[ID][1])
+            # text2label = text_to_labels(self.chars, self.samples[id_][1])
             # Y[i] = text2label + \
             #     [self.blank_label for _ in range(self.max_text_len - len(text2label))]  # noqa
-            len_text = len(self.samples[ID][1])
+            len_text = len(self.samples[id_][1])
             Y[i, :len_text] = \
-                text_to_labels(self.chars, self.samples[ID][1])
+                text_to_labels(self.chars, self.samples[id_][1])
             label_length[i] = len_text
 
         inputs = {

@@ -12,6 +12,8 @@ Command
 
 ```
 export PYTHONPATH=path_to_root_folder
+
+cp src/example_config.py src/config.py
 ```
 
 Folder Structure

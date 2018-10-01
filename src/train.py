@@ -9,7 +9,7 @@ from src.log import get_logger
 logger = get_logger(__name__)
 
 
-def train(pretrained=False):
+def train():
 
     train_set = TextSequenceGenerator(
         cf.WORDS_TRAIN,
@@ -23,9 +23,8 @@ def train(pretrained=False):
         shuffle=False, data_aug=False
     )
 
-    no_samples = 115319
-    no_train_set = int(no_samples * 0.95)
-    no_val_set = no_samples - no_train_set
+    no_train_set = train_set.ids
+    no_val_set = test_set.ids
     logger.info("No train set: %d", no_train_set)
     logger.info("No val set: %d", no_val_set)
 
@@ -44,7 +43,7 @@ def train(pretrained=False):
 
     model.fit_generator(generator=train_set,
                         steps_per_epoch=no_train_set // cf.BATCH_SIZE,
-                        epochs=5,
+                        epochs=cf.NO_EPOCHS,
                         validation_data=test_set,
                         validation_steps=no_val_set // cf.BATCH_SIZE,
                         callbacks=[ckp, earlystop])

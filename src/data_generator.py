@@ -134,14 +134,11 @@ class TextSequenceGenerator(keras.utils.Sequence):
 
     def __getitem__(self, index):
         """Generate one batch of data"""
-        # Generate indexes of the batch
         indexes = self.indexes[index *
                                self.batch_size:(index + 1) * self.batch_size]
 
-        # Find list of IDs
         ids = [self.ids[k] for k in indexes]
 
-        # Generate data
         X, y = self.__data_generation(ids)
 
         return X, y
@@ -160,7 +157,6 @@ class TextSequenceGenerator(keras.utils.Sequence):
             X = np.ones([size, 1, self.img_w, self.img_h])
         else:
             X = np.ones([size, self.img_w, self.img_h, 1])
-        # Y = np.ones([size, self.max_text_len])
         Y = np.zeros([size, self.max_text_len])
         input_length = np.ones((size, 1), dtype=np.float32) * \
             (self.img_w // self.downsample_factor - 2)
@@ -178,9 +174,6 @@ class TextSequenceGenerator(keras.utils.Sequence):
                 img = np.expand_dims(img, -1)
 
             X[i] = img
-            # text2label = text_to_labels(self.chars, self.samples[id_][1])
-            # Y[i] = text2label + \
-            #     [self.blank_label for _ in range(self.max_text_len - len(text2label))]  # noqa
             len_text = len(self.samples[id_][1])
             Y[i, :len_text] = \
                 text_to_labels(self.chars, self.samples[id_][1])
@@ -194,4 +187,4 @@ class TextSequenceGenerator(keras.utils.Sequence):
         }
         outputs = {'ctc': np.zeros([size])}  # (bs, 1)
 
-        return (inputs, outputs)
+        return inputs, outputs

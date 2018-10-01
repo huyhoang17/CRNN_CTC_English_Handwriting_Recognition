@@ -41,13 +41,13 @@ def CRNN_model():
                  kernel_initializer='he_normal', name='gru2_b')(gru1_merged)
 
     # transforms RNN output to character activations:
-    inner = Dense(80, kernel_initializer='he_normal',
+    inner = Dense(cf.NO_LABELS, kernel_initializer='he_normal',
                   name='dense2')(concatenate([gru_2, gru_2b]))
     y_pred = Activation('softmax', name='softmax')(inner)
 
     Model(inputs=input_data, outputs=y_pred).summary()
 
-    labels = Input(name='the_labels', shape=[32], dtype='float32')
+    labels = Input(name='the_labels', shape=[cf.MAX_LEN_TEXT], dtype='float32')
     input_length = Input(name='input_length', shape=[1], dtype='int64')
     label_length = Input(name='label_length', shape=[1], dtype='int64')
 
